@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VOD Bangla — পথ দেখে... পথ দেখায়...</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Hind+Siliguri:wght@300;400;500;600;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root {
+  --red: #e02020;
+  --green: #1db954;
+  --light-red: #ff4d4d;
+  --light-green: #27d669;
+  --glass: rgba(255,255,255,0.07);
+  --glass-border: rgba(255,255,255,0.15);
+  --text: #f0f0f0;
+  --subtext: #bbb;
+  --card-bg: rgba(15,15,20,0.7);
+  --bg1: #0a0a0f;
+  --bg2: #0f1a0f;
+  --accent: #e02020;
+  --font-display: 'Playfair Display', serif;
+  --font-body: 'Hind Siliguri', sans-serif;
+  --font-label: 'Rajdhani', sans-serif;
+}
+
+/* THEMES */
+body.theme-classic { --bg1:#0a0a0f; --bg2:#0f1a0f; --accent:#e02020; --green:#1db954; }
+body.theme-emerald { --bg1:#050f0a; --bg2:#091a10; --accent:#00c853; --green:#00c853; --red:#00c853; --light-red:#00e676; }
+body.theme-crimson { --bg1:#0f0505; --bg2:#1a0808; --accent:#d50000; --green:#ff6e6e; --red:#d50000; --light-red:#ff4444; }
+body.theme-royal   { --bg1:#050510; --bg2:#0a0520; --accent:#7c4dff; --green:#7c4dff; --red:#ff4081; --light-red:#ff4081; }
+body.theme-gold    { --bg1:#100c00; --bg2:#1a1200; --accent:#ffd600; --green:#ffd600; --red:#ff6f00; --light-red:#ff6f00; }
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg1);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* animated bg mesh */
+body::before {
+  content:'';
+  position:fixed; inset:0; z-index:-2;
+  background: radial-gradient(ellipse at 20% 20%, rgba(224,32,32,0.12) 0%, transparent 50%),
+              radial-gradient(ellipse at 80% 80%, rgba(29,185,84,0.10) 0%, transparent 50%),
+              radial-gradient(ellipse at 60% 10%, rgba(255,77,77,0.06) 0%, transparent 40%),
+              linear-gradient(135deg, var(--bg1) 0%, var(--bg2) 100%);
+  animation: meshMove 12s ease-in-out infinite alternate;
+}
+@keyframes meshMove {
+  0%   { filter: hue-rotate(0deg); }
+  100% { filter: hue-rotate(15deg); }
+}
+
+/* grid lines */
+body::after {
+  content:'';
+  position:fixed; inset:0; z-index:-1;
+  background-image: linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+/* ========== TOP BAR ========== */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 24px;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--glass-border);
+  flex-wrap: wrap;
+  gap: 10px;
+  position: sticky;
+  top: 0; z-index: 100;
+}
+.topbar-left {
+  display:flex; align-items:center; gap:10px;
+}
+.logo-small {
+  width:36px; height:36px; border-radius:8px;
+  background: linear-gradient(135deg, var(--red), var(--green));
+  display:flex; align-items:center; justify-content:center;
+  font-family:var(--font-display); font-weight:900; font-size:14px; color:#fff;
+  box-shadow: 0 0 16px rgba(224,32,32,0.4);
+}
+.topbar-brand {
+  font-family: var(--font-label);
+  font-weight:700; font-size:17px; letter-spacing:1px;
+  background: linear-gradient(90deg, var(--red), var(--green));
+  -webkit-background-clip: text; -webkit-text-fill-color:transparent;
+}
+.topbar-actions {
+  display:flex; gap:8px; flex-wrap:wrap;
+}
+.btn-action {
+  padding: 7px 16px;
+  border-radius: 6px;
+  border: 1px solid var(--glass-border);
+  background: var(--glass);
+  color: var(--text);
+  font-family: var(--font-label);
+  font-size: 13px; font-weight:600; letter-spacing:.5px;
+  cursor: pointer;
+  display:flex; align-items:center; gap:6px;
+  transition: all .25s;
+  backdrop-filter: blur(10px);
+}
+.btn-action:hover { background: rgba(255,255,255,0.14); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,0,0,0.3); }
+.btn-action.print { border-color: rgba(224,32,32,0.4); }
+.btn-action.pdf   { border-color: rgba(29,185,84,0.4); color: var(--green); }
+
+/* THEME SWITCHER */
+.theme-switcher {
+  display:flex; gap:6px; align-items:center;
+}
+.theme-dot {
+  width:18px; height:18px; border-radius:50%; cursor:pointer;
+  border: 2px solid transparent;
+  transition: all .2s;
+}
+.theme-dot:hover, .theme-dot.active { border-color:#fff; transform:scale(1.2); }
+.td-classic { background: linear-gradient(135deg,#e02020,#1db954); }
+.td-emerald { background: linear-gradient(135deg,#00c853,#004d40); }
+.td-crimson { background: linear-gradient(135deg,#d50000,#7f0000); }
+.td-royal   { background: linear-gradient(135deg,#7c4dff,#ff4081); }
+.td-gold    { background: linear-gradient(135deg,#ffd600,#ff6f00); }
+
+/* ========== HERO ========== */
+.hero {
+  text-align:center;
+  padding: 56px 24px 36px;
+  position:relative;
+}
+.hero-badge {
+  display:inline-block;
+  padding: 5px 18px;
+  border-radius:50px;
+  border: 1px solid rgba(224,32,32,0.4);
+  background: rgba(224,32,32,0.08);
+  font-family: var(--font-label);
+  font-size:12px; letter-spacing:2px; color:var(--light-red);
+  margin-bottom:18px;
+  animation: pulse 3s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{opacity:.8} 50%{opacity:1} }
+
+.hero-logo {
+  width: 90px; height: 90px;
+  margin: 0 auto 20px;
+  border-radius: 22px;
+  background: linear-gradient(135deg, var(--red) 0%, #8b0000 50%, var(--green) 100%);
+  display: flex; align-items:center; justify-content:center;
+  font-family: var(--font-display); font-weight:900; font-size:32px; color:#fff;
+  box-shadow: 0 0 40px rgba(224,32,32,0.5), 0 0 80px rgba(29,185,84,0.2);
+  animation: logoGlow 4s ease-in-out infinite alternate;
+}
+@keyframes logoGlow {
+  from { box-shadow: 0 0 30px rgba(224,32,32,0.4), 0 0 60px rgba(29,185,84,0.15); }
+  to   { box-shadow: 0 0 50px rgba(224,32,32,0.7), 0 0 100px rgba(29,185,84,0.3); }
+}
+
+.hero h1 {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 6vw, 3.8rem);
+  font-weight:900;
+  line-height:1.1;
+  background: linear-gradient(90deg, #fff 0%, var(--light-red) 40%, var(--light-green) 80%, #fff 100%);
+  background-size:200%; animation:textShift 6s linear infinite;
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  margin-bottom:10px;
+}
+@keyframes textShift { 0%{background-position:0%} 100%{background-position:200%} }
+
+.hero-tagline {
+  font-family: var(--font-body);
+  font-size: clamp(1rem,2.5vw,1.3rem);
+  color: var(--green);
+  letter-spacing:3px;
+  margin-bottom:12px;
+  opacity:.9;
+}
+.hero-desc {
+  max-width:680px; margin:0 auto 30px;
+  font-size:14px; color:var(--subtext); line-height:1.7;
+}
+.hero-line {
+  display:flex; align-items:center; justify-content:center; gap:16px;
+  margin-bottom:8px;
+}
+.hero-line::before,.hero-line::after {
+  content:''; flex:1; max-width:120px;
+  height:1px;
+  background:linear-gradient(90deg,transparent,var(--red));
+}
+.hero-line::after { background:linear-gradient(90deg,var(--green),transparent); }
+
+/* ========== SECTION TITLE ========== */
+.section-title {
+  display:flex; align-items:center; gap:12px;
+  padding: 0 24px;
+  margin: 36px 0 18px;
+}
+.section-title h2 {
+  font-family: var(--font-label);
+  font-size:18px; font-weight:700; letter-spacing:2px;
+  text-transform:uppercase;
+  color:var(--text);
+}
+.section-title .stline {
+  flex:1; height:1px;
+  background:linear-gradient(90deg,var(--accent),transparent);
+}
+.section-icon {
+  font-size:22px;
+}
+
+/* ========== GRID ========== */
+.grid-container {
+  padding: 0 20px 16px;
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+}
+
+/* ========== SOCIAL CARD ========== */
+.social-card {
+  background: var(--card-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  padding: 18px 20px;
+  backdrop-filter: blur(16px);
+  transition: all .3s cubic-bezier(.25,.8,.25,1);
+  position:relative;
+  overflow:hidden;
+}
+.social-card::before {
+  content:'';
+  position:absolute; top:0; left:0; right:0; height:2px;
+  background: var(--card-accent, linear-gradient(90deg, var(--red), var(--green)));
+  opacity:0; transition:.3s;
+}
+.social-card:hover { transform:translateY(-4px); box-shadow:0 16px 40px rgba(0,0,0,0.4); border-color:rgba(255,255,255,0.22); }
+.social-card:hover::before { opacity:1; }
+
+.card-header {
+  display:flex; align-items:center; gap:12px; margin-bottom:14px;
+}
+.platform-icon {
+  width:44px; height:44px; border-radius:12px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:22px; flex-shrink:0;
+  transition: transform .25s;
+}
+.social-card:hover .platform-icon { transform: scale(1.1) rotate(-3deg); }
+
+.card-info { flex:1; min-width:0; }
+.platform-name {
+  font-family:var(--font-label); font-weight:700;
+  font-size:15px; letter-spacing:.5px;
+  color:var(--text); margin-bottom:2px;
+}
+.platform-username {
+  font-size:13px; color:var(--subtext);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+
+/* sub-accounts inside a card */
+.sub-accounts {
+  display:flex; flex-direction:column; gap:8px;
+  margin-bottom:14px;
+}
+.sub-row {
+  display:flex; align-items:center; gap:8px;
+  padding: 8px 12px;
+  border-radius:10px;
+  background: rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.08);
+  cursor:pointer;
+  transition: all .2s;
+  text-decoration:none;
+}
+.sub-row:hover { background:rgba(255,255,255,0.09); border-color:rgba(255,255,255,0.18); transform:translateX(4px); }
+.sub-icon { font-size:16px; flex-shrink:0; }
+.sub-label {
+  font-size:13px; color:var(--text);
+  font-family:var(--font-body); font-weight:500;
+  flex:1; min-width:0;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.sub-handle {
+  font-size:11px; color:var(--subtext);
+}
+
+/* card action row */
+.card-actions {
+  display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;
+}
+.btn-visit {
+  flex:1; min-width:90px;
+  padding: 9px 10px;
+  border-radius:9px;
+  background: var(--card-btn, rgba(224,32,32,0.15));
+  border: 1px solid var(--card-btn-border, rgba(224,32,32,0.3));
+  color:var(--text); font-family:var(--font-label); font-size:12px; font-weight:600;
+  letter-spacing:.5px; text-transform:uppercase; cursor:pointer;
+  transition:all .2s; text-decoration:none; display:flex; align-items:center; justify-content:center; gap:5px;
+}
+.btn-visit:hover { background:rgba(224,32,32,0.28); transform:translateY(-1px); }
+
+.btn-share, .btn-qr {
+  padding: 9px 12px;
+  border-radius:9px;
+  border:1px solid var(--glass-border);
+  background:var(--glass);
+  color:var(--subtext); font-size:14px; cursor:pointer;
+  transition:all .2s;
+  display:flex; align-items:center; gap:4px;
+  font-family:var(--font-label); font-size:11px; font-weight:600; letter-spacing:.5px;
+}
+.btn-share:hover { background:rgba(255,255,255,0.1); color:var(--text); }
+.btn-qr:hover { background:rgba(29,185,84,0.15); border-color:rgba(29,185,84,0.4); color:var(--green); }
+
+/* ========== QR MODAL ========== */
+.qr-modal {
+  display:none; position:fixed; inset:0; z-index:999;
+  background:rgba(0,0,0,0.8); backdrop-filter:blur(10px);
+  align-items:center; justify-content:center;
+}
+.qr-modal.show { display:flex; }
+.qr-box {
+  background: #111; border:1px solid var(--glass-border);
+  border-radius:20px; padding:32px 28px;
+  text-align:center; max-width:320px; width:90%;
+  animation: popIn .3s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes popIn { from{transform:scale(.7);opacity:0} to{transform:scale(1);opacity:1} }
+.qr-box h3 { font-family:var(--font-display); margin-bottom:6px; }
+.qr-box p { font-size:12px; color:var(--subtext); margin-bottom:20px; }
+#qrcode-display { display:flex; justify-content:center; margin-bottom:20px; }
+#qrcode-display canvas { border-radius:10px; }
+.btn-close-qr {
+  padding:9px 28px; border-radius:9px;
+  background:rgba(224,32,32,0.15); border:1px solid rgba(224,32,32,0.3);
+  color:var(--text); font-family:var(--font-label); font-weight:600; font-size:13px;
+  cursor:pointer; transition:.2s;
+}
+.btn-close-qr:hover { background:rgba(224,32,32,0.3); }
+
+/* ========== CONTACT SECTION ========== */
+.contact-grid {
+  padding: 0 20px 20px;
+  display:grid; gap:14px;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+}
+.contact-card {
+  background:var(--card-bg); border:1px solid var(--glass-border);
+  border-radius:16px; padding:20px;
+  backdrop-filter:blur(16px);
+  display:flex; align-items:flex-start; gap:14px;
+  transition:all .3s; text-decoration:none; cursor:pointer;
+}
+.contact-card:hover { transform:translateY(-4px); box-shadow:0 16px 40px rgba(0,0,0,0.4); border-color:rgba(255,255,255,0.2); }
+.contact-icon {
+  width:46px; height:46px; border-radius:12px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:22px; flex-shrink:0;
+}
+.contact-label {
+  font-family:var(--font-label); font-size:11px; font-weight:700;
+  letter-spacing:2px; text-transform:uppercase; color:var(--subtext); margin-bottom:4px;
+}
+.contact-value {
+  font-size:13px; color:var(--text); line-height:1.5; font-weight:500;
+}
+
+/* ========== ABOUT STRIP ========== */
+.about-strip {
+  margin: 12px 20px 32px;
+  background: var(--card-bg);
+  border:1px solid var(--glass-border);
+  border-radius:16px; padding:24px 28px;
+  backdrop-filter:blur(16px);
+  border-left:4px solid var(--red);
+  position:relative; overflow:hidden;
+}
+.about-strip::after {
+  content:'';
+  position:absolute; top:-30px; right:-30px;
+  width:120px; height:120px; border-radius:50%;
+  background:radial-gradient(circle, rgba(224,32,32,0.1), transparent);
+}
+.about-strip h3 {
+  font-family:var(--font-label); font-size:12px; letter-spacing:2px; text-transform:uppercase;
+  color:var(--red); margin-bottom:10px;
+}
+.about-strip p { font-size:14px; color:var(--subtext); line-height:1.8; }
+
+/* ========== FOOTER ========== */
+footer {
+  text-align:center; padding:28px 20px;
+  border-top:1px solid var(--glass-border);
+  background:rgba(0,0,0,0.3);
+}
+footer .footer-logo {
+  font-family:var(--font-display); font-weight:900; font-size:22px;
+  background: linear-gradient(90deg,var(--red),var(--green));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  margin-bottom:6px;
+}
+footer .footer-tagline {
+  font-size:13px; color:var(--green); letter-spacing:2px; margin-bottom:10px;
+}
+footer .footer-copy { font-size:12px; color:rgba(255,255,255,0.3); }
+
+/* ========== PRINT STYLES ========== */
+@media print {
+  * { color:#000!important; background:transparent!important; box-shadow:none!important; -webkit-text-fill-color:#000!important; }
+  body { background:#fff!important; }
+  body::before, body::after { display:none; }
+  .topbar, .btn-share, .btn-qr, .qr-modal, .theme-switcher { display:none!important; }
+  .social-card, .contact-card, .about-strip {
+    background:#fff!important; border:1px solid #ccc!important;
+    break-inside:avoid; page-break-inside:avoid;
+    backdrop-filter:none!important;
+  }
+  .social-card::before { display:none; }
+  .platform-name, .platform-username, .sub-label, .sub-handle, .contact-value, .contact-label { color:#000!important; }
+  .hero h1, .footer-logo { background:none!important; -webkit-background-clip:initial!important; color:#000!important; -webkit-text-fill-color:#000!important; }
+  .hero-tagline, .footer-tagline { color:#2a6b2a!important; }
+  .hero-badge { border:1px solid #ccc!important; color:#000!important; }
+  .sub-row { border:1px solid #ccc!important; }
+  .btn-visit { background:#f0f0f0!important; border:1px solid #ccc!important; color:#000!important; }
+  .section-title h2 { color:#000!important; }
+  .hero-desc, .about-strip p { color:#333!important; }
+  .hero-logo { background:#e02020!important; }
+  @page { margin:15mm; size:A4 portrait; }
+  @page landscape { size:A4 landscape; }
+  .grid-container, .contact-grid { grid-template-columns:1fr 1fr!important; }
+}
+</style>
+</head>
+<body class="theme-classic">
+
+<!-- TOP BAR -->
+<div class="topbar" id="topbar">
+  <div class="topbar-left">
+    <div class="logo-small">V</div>
+    <div class="topbar-brand">VOD BANGLA</div>
+  </div>
+  <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+    <div class="theme-switcher" title="রঙ বদলান">
+      <div class="theme-dot td-classic active" onclick="setTheme('classic',this)" title="Classic"></div>
+      <div class="theme-dot td-emerald" onclick="setTheme('emerald',this)" title="Emerald"></div>
+      <div class="theme-dot td-crimson" onclick="setTheme('crimson',this)" title="Crimson"></div>
+      <div class="theme-dot td-royal" onclick="setTheme('royal',this)" title="Royal"></div>
+      <div class="theme-dot td-gold" onclick="setTheme('gold',this)" title="Gold"></div>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn-action print" onclick="window.print()">🖨️ Print</button>
+      <button class="btn-action pdf" onclick="savePDF()">📄 Save PDF</button>
+    </div>
+  </div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-badge">🔴 LIVE &nbsp;|&nbsp; বাংলাদেশের নির্ভরযোগ্য মিডিয়া</div>
+  <div class="hero-logo">V</div>
+  <h1>VOD Bangla</h1>
+  <div class="hero-tagline">পথ দেখে... পথ দেখায়...</div>
+  <div class="hero-line"><span style="font-family:var(--font-label);font-size:12px;letter-spacing:3px;color:rgba(255,255,255,0.4)">CONNECT WITH US</span></div>
+  <div class="hero-desc">Bangladesh's trusted multimedia news broadcaster. Reliable coverage, live streaming, Bangla-language access — all in one place. Broadcasting since 2024.</div>
+</div>
+
+<!-- YOUTUBE SECTION -->
+<div class="section-title">
+  <span class="section-icon">📺</span>
+  <h2>YouTube Network</h2>
+  <div class="stline"></div>
+</div>
+<div class="grid-container">
+  <div class="social-card" style="--card-accent:linear-gradient(90deg,#ff0000,#ff4444); grid-column:1/-1;">
+    <div class="card-header">
+      <div class="platform-icon" style="background:linear-gradient(135deg,#ff0000,#cc0000);">📺</div>
+      <div class="card-info">
+        <div class="platform-name">YouTube Channels</div>
+        <div class="platform-username">youtube.com/@vodbangla & more</div>
+      </div>
+    </div>
+    <div class="sub-accounts">
+      <a href="https://www.youtube.com/@vodbangla" target="_blank" class="sub-row">
+        <span class="sub-icon">🎬</span>
+        <span class="sub-label">VOD Bangla</span>
+        <span class="sub-handle">@vodbangla</span>
+      </a>
+      <a href="https://www.youtube.com/@VODNewsbd" target="_blank" class="sub-row">
+        <span class="sub-icon">📰</span>
+        <span class="sub-label">VOD News</span>
+        <span class="sub-handle">@VODNewsbd</span>
+      </a>
+      <a href="https://www.youtube.com/@vodworld" target="_blank" class="sub-row">
+        <span class="sub-icon">🌍</span>
+        <span class="sub-label">VOD World</span>
+        <span class="sub-handle">@vodworld</span>
+      </a>
+      <a href="https://www.youtube.com/@vodsports" target="_blank" class="sub-row">
+        <span class="sub-icon">⚽</span>
+        <span class="sub-label">VOD Sports</span>
+        <span class="sub-handle">@vodsports</span>
+      </a>
+      <a href="https://www.youtube.com/@vodentermaintent" target="_blank" class="sub-row">
+        <span class="sub-icon">🎭</span>
+        <span class="sub-label">VOD Entertainment</span>
+        <span class="sub-handle">@vodentermaintent</span>
+      </a>
+    </div>
+    <div class="card-actions">
+      <a href="https://www.youtube.com/@vodbangla" target="_blank" class="btn-visit" style="background:rgba(255,0,0,0.15);border-color:rgba(255,0,0,0.35);">▶ Visit Main Channel</a>
+      <button class="btn-share" onclick="shareLink('https://www.youtube.com/@vodbangla','VOD Bangla YouTube')">🔗 Share</button>
+      <button class="btn-qr" onclick="showQR('https://www.youtube.com/@vodbangla','VOD Bangla YouTube')">⬛ QR Code</button>
+    </div>
+  </div>
+</div>
+
+<!-- WEBSITE -->
+<div class="section-title">
+  <span class="section-icon">🌐</span>
+  <h2>Website</h2>
+  <div class="stline"></div>
+</div>
+<div class="grid-container">
+  <div class="social-card" style="--card-accent:linear-gradient(90deg,#2196f3,#00bcd4);">
+    <div class="card-header">
+      <div class="platform-icon" style="background:linear-gradient(135deg,#1565c0,#0288d1);">🌐</div>
+      <div class="card-info">
+        <div class="platform-name">Official Website</div>
+        <div class="platform-username">vodbangla.com</div>
+      </div>
+    </div>
+    <div class="card-actions">
+      <a href="https://www.vodbangla.com" target="_blank" class="btn-visit" style="background:rgba(33,150,243,0.15);border-color:rgba(33,150,243,0.35);">🌐 Visit Website</a>
+      <button class="btn-share" onclick="shareLink('https://www.vodbangla.com','VOD Bangla')">🔗 Share</button>
+      <button class="btn-qr" onclick="showQR('https://www.vodbangla.com','VOD Bangla Website')">⬛ QR Code</button>
+    </div>
+  </div>
+</div>
+
+<!-- FACEBOOK SECTION -->
+<div class="section-title">
+  <span class="section-icon">📘</span>
+  <h2>Facebook Pages</h2>
+  <div class="stline"></div>
+</div>
+<div class="grid-container">
+  <div class="social-card" style="--card-accent:linear-gradient(90deg,#1877f2,#4267b2); grid-column:1/-1;">
+    <div class="card-header">
+      <div class="platform-icon" style="background:linear-gradient(135deg,#1877f2,#3b5998);">📘</div>
+      <div class="card-info">
+        <div class="platform-name">Facebook</div>
+        <div class="platform-username">Multiple Pages</div>
+      </div>
+    </div>
+    <div class="sub-accounts">
+      <a href="https://www.facebook.com/vodbangla" target="_blank" class="sub-row">
+        <span class="sub-icon">📘</span>
+        <span class="sub-label">VOD Bangla</span>
+        <span class="sub-handle">/vodbangla</span>
+      </a>
+      <a href="https://www.facebook.com/vodnewsbd" target="_blank" class="sub-row">
+        <span class="sub-icon">📰</span>
+        <span class="sub-label">VOD News</span>
+        <span class="sub-handle">/vodnewsbd</span>
+      </a>
+      <a href="https://www.facebook.com/vodworldbd" target="_blank" class="sub-row">
+        <span class="sub-icon">🌍</span>
+        <span class="sub-label">VOD World</span>
+        <span class="sub-handle">/vodworldbd</span>
+      </a>
+      <a href="https://www.facebook.com/vodsports" target="_blank" class="sub-row">
+        <span class="sub-icon">⚽</span>
+        <span class="sub-label">VOD Sports</span>
+        <span class="sub-handle">/vodsports</span>
+      </a>
+      <a href="https://www.facebook.com/vodentermaintent" target="_blank" class="sub-row">
+        <span class="sub-icon">🎭</span>
+        <span class="sub-label">VOD Entertainment</span>
+        <span class="sub-handle">/vodentermaintent</span>
+      </a>
+    </div>
+    <div class="card-actions">
+      <a href="https://www.facebook.com/vodbangla" target="_blank" class="btn-visit" style="background:rgba(24,119,242,0.15);border-color:rgba(24,119,242,0.35);">📘 Visit Main Page</a>
+      <button class="btn-share" onclick="shareLink('https://www.facebook.com/vodbangla','VOD Bangla Facebook')">🔗 Share</button>
+      <button class="btn-qr" onclick="showQR('https://www.facebook.com/vodbangla','VOD Bangla Facebook')">⬛ QR Code</button>
+    </div>
+  </div>
+</div>
+
+<!-- OTHER SOCIAL MEDIA -->
+<div class="section-title">
+  <span class="section-icon">📱</span>
+  <h2>Social Media</h2>
+  <div class="stline"></div>
+</div>
+<div class="grid-container">
+
+  <!-- TikTok -->
+  <div class="social-card" style="--card-accent:linear-gradient(90deg,#000,#ff0050);">
+    <div class="card-header">
+      <div class="platform-icon" style="background:linear-gradient(135deg,#010101,#ff0050);">🎵</div>
+      <div class="card-info">
+        <div class="platform-name">TikTok</div>
+        <div class="platform-username">@vodbangla</div>
+      </div>
+    </div>
+    <div class="card-actions">
+      <a href="https://www.tiktok.com/@vodbangla" target="_blank" class="btn-visit" style="background:rgba(255,0,80,0.12);border-color:rgba(255,0,80,0.3);">🎵 Follow</a>
+      <button class="btn-share" onclick="shareLink('https://www.tiktok.com/@vodbangla','VOD Bangla TikTok')">🔗 Share</button>
+      <button class="btn-qr" onclick="showQR('https://www.tiktok.com/@vodbangla','VOD Bangla TikTok')">⬛ QR</button>
+    </div>
+  </div>
+
+  <!-- Instagram -->
+  <div class="social-card" style="--card-accent:linear-gradient(90deg,#833ab4,#fd1d1d,#fcb045);">
+    <div class="card-header">
+      <div class="platform-icon" style="background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);">📸</div>
+      <div class="card-info">
+        <div class="platform-name">Instagram</div>
+        <div class="platform-username">@vodbanglabd</div>
+      </div>
+    </div>
+    <div class="card-actions">
+      <a href="https://www.instagram.com/vodbanglabd" target="_blank" class="btn-visit" style="background:rgba(131,58,180,0.12);border-color:rgba(131,58,180,0.3);">📸 Follow</a>
+      <button class="btn-share" onclick="shareLink('https://www.instagram.com/vodbanglabd','VOD Bangla Instagram')">🔗 Share</button>
+      <button class="btn-qr" onclick="showQR('https://www.instagram.com/vodbanglabd','VOD Bangla Instagram')">⬛ QR</button>
+    </div>
+  </div>
+
+  <!-- Twitter/X -->
+  <div class="social-card" style="--card-accent:linear-gradient(90deg,#000,#444);">
+    <div class="card-header">
+      <div class="platform-icon" style="background:linear-gradient(135deg,#000,#222);">𝕏</div>
+      <div class="card-info">
+        <div class="platform-name">Twitter / X</div>
+        <div class="platform-username">@VODBangla</div>
+      </div>
+    </div>
+    <div class="card-actions">
+      <a href="https://x.com/VODBangla" target="_blank" class="btn-visit" style="background:rgba(0,0,0,0.25);border-color:rgba(255,255,255,0.2);">𝕏 Follow</a>
+      <button class="btn-share" onclick="shareLink('https://x.com/VODBangla','VOD Bangla on X')">🔗 Share</button>
+      <button class="btn-qr" onclick="showQR('https://x.com/VODBangla','VOD Bangla X')">⬛ QR</button>
+    </div>
+  </div>
+
+  <!-- Telegram -->
+  <div class="social-card" style="--card-accent:linear-gradient(90deg,#0088cc,#29b6f6);">
+    <div class="card-header">
+      <div class="platform-icon" style="background:linear-gradient(135deg,#0088cc,#229ed9);">✈️</div>
+      <div class="card-info">
+        <div class="platform-name">Telegram</div>
+        <div class="platform-username">@vodbanglabd</div>
+      </div>
+    </div>
+    <div class="card-actions">
+      <a href="https://t.me/vodbanglabd" target="_blank" class="btn-visit" style="background:rgba(0,136,204,0.12);border-color:rgba(0,136,204,0.3);">✈️ Join</a>
+      <button class="btn-share" onclick="shareLink('https://t.me/vodbanglabd','VOD Bangla Telegram')">🔗 Share</button>
+      <button class="btn-qr" onclick="showQR('https://t.me/vodbanglabd','VOD Bangla Telegram')">⬛ QR</button>
+    </div>
+  </div>
+
+  <!-- Threads -->
+  <div class="social-card" style="--card-accent:linear-gradient(90deg,#101010,#555);">
+    <div class="card-header">
+      <div class="platform-icon" style="background:linear-gradient(135deg,#101010,#333);">🧵</div>
+      <div class="card-info">
+        <div class="platform-name">Threads</div>
+        <div class="platform-username">@vodbanglabd</div>
+      </div>
+    </div>
+    <div class="card-actions">
+      <a href="https://www.threads.net/@vodbanglabd" target="_blank" class="btn-visit" style="background:rgba(50,50,50,0.25);border-color:rgba(255,255,255,0.18);">🧵 Follow</a>
+      <button class="btn-share" onclick="shareLink('https://www.threads.net/@vodbanglabd','VOD Bangla Threads')">🔗 Share</button>
+      <button class="btn-qr" onclick="showQR('https://www.threads.net/@vodbanglabd','VOD Bangla Threads')">⬛ QR</button>
+    </div>
+  </div>
+
+  <!-- LinkedIn -->
+  <div class="social-card" style="--card-accent:linear-gradient(90deg,#0077b5,#00a0dc);">
+    <div class="card-header">
+      <div class="platform-icon" style="background:linear-gradient(135deg,#0077b5,#005582);">💼</div>
+      <div class="card-info">
+        <div class="platform-name">LinkedIn</div>
+        <div class="platform-username">VOD Bangla</div>
+      </div>
+    </div>
+    <div class="card-actions">
+      <a href="https://www.linkedin.com/company/vodbangla" target="_blank" class="btn-visit" style="background:rgba(0,119,181,0.12);border-color:rgba(0,119,181,0.3);">💼 Connect</a>
+      <button class="btn-share" onclick="shareLink('https://www.linkedin.com/company/vodbangla','VOD Bangla LinkedIn')">🔗 Share</button>
+      <button class="btn-qr" onclick="showQR('https://www.linkedin.com/company/vodbangla','VOD Bangla LinkedIn')">⬛ QR</button>
+    </div>
+  </div>
+
+  <!-- WhatsApp -->
+  <div class="social-card" style="--card-accent:linear-gradient(90deg,#25d366,#128c7e);">
+    <div class="card-header">
+      <div class="platform-icon" style="background:linear-gradient(135deg,#25d366,#128c7e);">💬</div>
+      <div class="card-info">
+        <div class="platform-name">WhatsApp Channel</div>
+        <div class="platform-username">VOD Bangla Official</div>
+      </div>
+    </div>
+    <div class="card-actions">
+      <a href="https://whatsapp.com/channel/0029VaauVEhAe5VyVK0vtc1s" target="_blank" class="btn-visit" style="background:rgba(37,211,102,0.12);border-color:rgba(37,211,102,0.3);">💬 Subscribe</a>
+      <button class="btn-share" onclick="shareLink('https://whatsapp.com/channel/0029VaauVEhAe5VyVK0vtc1s','VOD Bangla WhatsApp')">🔗 Share</button>
+      <button class="btn-qr" onclick="showQR('https://whatsapp.com/channel/0029VaauVEhAe5VyVK0vtc1s','VOD Bangla WhatsApp')">⬛ QR</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- CONTACT -->
+<div class="section-title">
+  <span class="section-icon">📍</span>
+  <h2>যোগাযোগ করুন</h2>
+  <div class="stline"></div>
+</div>
+<div class="contact-grid">
+  <a href="https://share.google/CdIIPZUX2L1oHFY8G" target="_blank" class="contact-card">
+    <div class="contact-icon" style="background:linear-gradient(135deg,rgba(234,67,53,0.2),rgba(234,67,53,0.05));">📍</div>
+    <div>
+      <div class="contact-label">ঠিকানা</div>
+      <div class="contact-value">Planners Tower, 10th Floor, Suite 6 & 7<br>13/A Bir Uttam CR Datta Road<br>Sonargaon Road, Dhaka 1000</div>
+    </div>
+  </a>
+  <a href="tel:+8801786091965" class="contact-card">
+    <div class="contact-icon" style="background:linear-gradient(135deg,rgba(29,185,84,0.2),rgba(29,185,84,0.05));">📞</div>
+    <div>
+      <div class="contact-label">ফোন</div>
+      <div class="contact-value">01786-091965</div>
+    </div>
+  </a>
+  <a href="mailto:info@vodbangla.com" class="contact-card">
+    <div class="contact-icon" style="background:linear-gradient(135deg,rgba(33,150,243,0.2),rgba(33,150,243,0.05));">✉️</div>
+    <div>
+      <div class="contact-label">ইমেইল</div>
+      <div class="contact-value">info@vodbangla.com</div>
+    </div>
+  </a>
+  <a href="https://www.vodbangla.com" target="_blank" class="contact-card">
+    <div class="contact-icon" style="background:linear-gradient(135deg,rgba(224,32,32,0.2),rgba(224,32,32,0.05));">🌐</div>
+    <div>
+      <div class="contact-label">ওয়েবসাইট</div>
+      <div class="contact-value">www.vodbangla.com</div>
+    </div>
+  </a>
+</div>
+
+<!-- ABOUT -->
+<div class="section-title">
+  <span class="section-icon">ℹ️</span>
+  <h2>আমাদের সম্পর্কে</h2>
+  <div class="stline"></div>
+</div>
+<div class="about-strip">
+  <h3>From VOD Bangla</h3>
+  <p>VOD Bangla offers regularly updated articles on its news website. The broadcaster's stated goals are to produce reliable news coverage, provide access to the Bangla language, and promote understanding between peoples. It is also a provider of live streaming world news which can be viewed via its website, YouTube, and various mobile devices and digital media players. VOD Bangla has been broadcasting since 2024.</p>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">VOD Bangla</div>
+  <div class="footer-tagline">পথ দেখে... পথ দেখায়...</div>
+  <div class="footer-copy">© 2024–2026 VOD Bangla. All rights reserved. Bangladesh's Trusted Media House.</div>
+</footer>
+
+<!-- QR MODAL -->
+<div class="qr-modal" id="qrModal" onclick="closeQR(event)">
+  <div class="qr-box">
+    <h3 id="qrTitle">QR Code</h3>
+    <p id="qrSub">স্ক্যান করুন অথবা শেয়ার করুন</p>
+    <div id="qrcode-display"></div>
+    <button class="btn-close-qr" onclick="document.getElementById('qrModal').classList.remove('show')">✕ বন্ধ করুন</button>
+  </div>
+</div>
+
+<script>
+function setTheme(name, el) {
+  document.body.className = 'theme-' + name;
+  document.querySelectorAll('.theme-dot').forEach(d => d.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function showQR(url, title) {
+  document.getElementById('qrTitle').textContent = title;
+  document.getElementById('qrSub').textContent = url;
+  const display = document.getElementById('qrcode-display');
+  display.innerHTML = '';
+  new QRCode(display, {
+    text: url,
+    width: 200,
+    height: 200,
+    colorDark: '#111',
+    colorLight: '#ffffff',
+    correctLevel: QRCode.CorrectLevel.H
+  });
+  document.getElementById('qrModal').classList.add('show');
+}
+
+function closeQR(e) {
+  if (e.target === document.getElementById('qrModal'))
+    document.getElementById('qrModal').classList.remove('show');
+}
+
+function shareLink(url, title) {
+  if (navigator.share) {
+    navigator.share({ title, url }).catch(() => {});
+  } else {
+    navigator.clipboard.writeText(url).then(() => {
+      alert('লিঙ্ক কপি হয়েছে: ' + url);
+    });
+  }
+}
+
+function savePDF() {
+  alert('PDF সেভ করতে:\n1. Print বাটনে ক্লিক করুন\n2. Destination: "Save as PDF" সিলেক্ট করুন\n3. Save ক্লিক করুন');
+  window.print();
+}
+</script>
+</body>
+</html>
