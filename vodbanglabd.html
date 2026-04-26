@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VOD Bangla — Social Media Directory</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@300;400;500;600;700&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family:'Inter',sans-serif;
+  background:#c8c8c8;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding:28px 20px 60px;
+  min-height:100vh;
+}
+
+.screen-only {
+  display:flex; gap:12px; margin-bottom:20px; flex-wrap:wrap; justify-content:center;
+}
+.btn-top {
+  padding:9px 22px; border-radius:8px; border:none;
+  font-family:'Inter',sans-serif; font-size:13px; font-weight:600;
+  cursor:pointer; display:flex; align-items:center; gap:7px; transition:.2s;
+  box-shadow:0 4px 14px rgba(0,0,0,0.2);
+}
+.btn-print { background:#cc0000; color:#fff; }
+.btn-pdf   { background:#1a7a3a; color:#fff; }
+.btn-top:hover { transform:translateY(-2px); }
+
+/* ── A4 PAGE ── */
+.page {
+  width:210mm;
+  min-height:297mm;
+  background:#ffffff;
+  box-shadow:0 8px 50px rgba(0,0,0,0.25);
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  position:relative;
+}
+
+.top-bar {
+  height:6px;
+  background:linear-gradient(90deg,#cc0000 50%,#1a7a3a 50%);
+  flex-shrink:0;
+}
+
+/* ── HEADER ── */
+.header {
+  padding:18px 26px 14px;
+  display:flex;
+  align-items:center;
+  gap:15px;
+  border-bottom:1.5px solid #e8e8e8;
+  flex-shrink:0;
+}
+.logo-wrap {
+  width:58px; height:58px; border-radius:13px;
+  background:linear-gradient(135deg,#cc0000,#7a0000 55%,#1a7a3a);
+  display:flex; align-items:center; justify-content:center;
+  flex-shrink:0;
+  box-shadow:0 3px 14px rgba(204,0,0,0.3);
+}
+.logo-letter {
+  font-family:'Playfair Display',serif;
+  font-weight:900; font-size:26px; color:#fff;
+}
+.header-text { flex:1; }
+.header-title {
+  font-family:'Playfair Display',serif;
+  font-size:25px; font-weight:900; color:#111; line-height:1;
+}
+.header-title span { color:#cc0000; }
+.header-sub {
+  font-family:'Rajdhani',sans-serif;
+  font-size:10.5px; font-weight:700; letter-spacing:2.5px;
+  color:#1a7a3a; text-transform:uppercase; margin-top:3px;
+}
+.header-qr-wrap {
+  display:flex; flex-direction:column; align-items:center; gap:3px;
+}
+.header-qr-lbl {
+  font-family:'Rajdhani',sans-serif;
+  font-size:7.5px; font-weight:700; letter-spacing:1.2px;
+  color:#999; text-transform:uppercase; text-align:center; line-height:1.4;
+}
+#qr-main { border-radius:6px; overflow:hidden; border:1px solid #ddd; }
+
+/* ── SECTION ── */
+.sec {
+  display:flex; align-items:center; gap:8px;
+  padding:9px 26px 4px; flex-shrink:0;
+}
+.sec-txt {
+  font-family:'Rajdhani',sans-serif;
+  font-size:9px; font-weight:700; letter-spacing:2.5px;
+  text-transform:uppercase; color:#aaa; white-space:nowrap;
+}
+.sec-line { flex:1; height:1px; }
+
+/* ── ROWS ── */
+.rows { padding:0 26px; display:flex; flex-direction:column; gap:1.5px; flex-shrink:0; }
+
+.row {
+  display:flex; align-items:center; gap:9px;
+  padding:5px 9px; border-radius:6px;
+  border:1px solid transparent; cursor:default;
+}
+.row:nth-child(even) { background:#fafafa; }
+.row:hover { background:#f3f3f3; border-color:#e8e8e8; }
+
+.s-icon {
+  width:26px; height:26px; border-radius:6px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:12px; flex-shrink:0; color:#fff;
+  font-weight:700; font-style:normal;
+}
+.s-platform {
+  font-size:10.5px; font-weight:700; color:#111;
+  width:116px; flex-shrink:0;
+}
+.s-handle {
+  font-size:10px; font-weight:600; color:#444;
+  width:115px; flex-shrink:0;
+}
+.s-url {
+  font-size:9px; color:#888; font-weight:400;
+  flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.row-qr {
+  width:34px; height:34px; flex-shrink:0;
+  border-radius:4px; overflow:hidden;
+  border:1px solid #ddd; background:#fff;
+}
+.row-qr canvas, .row-qr img {
+  width:34px!important; height:34px!important; display:block;
+}
+
+/* ── CONTACT ── */
+.contact-grid {
+  padding:4px 26px;
+  display:grid; grid-template-columns:1fr 1fr; gap:5px; flex-shrink:0;
+}
+.c-item {
+  display:flex; align-items:flex-start; gap:8px;
+  padding:7px 10px;
+  border-radius:6px; border:1px solid #eee; background:#fafafa;
+}
+.c-icon {
+  width:24px; height:24px; border-radius:6px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:12px; flex-shrink:0;
+}
+.c-lbl {
+  font-family:'Rajdhani',sans-serif;
+  font-size:8px; font-weight:700; letter-spacing:2px;
+  text-transform:uppercase; color:#bbb; margin-bottom:2px;
+}
+.c-val { font-size:9.5px; color:#222; font-weight:500; line-height:1.45; }
+
+/* ── ABOUT ── */
+.about-box {
+  margin:5px 26px 0;
+  padding:9px 13px;
+  border-radius:6px; border:1px solid #eee;
+  border-left:3px solid #cc0000; background:#fafafa;
+  flex-shrink:0;
+}
+.about-lbl {
+  font-family:'Rajdhani',sans-serif;
+  font-size:8.5px; font-weight:700; letter-spacing:2px;
+  text-transform:uppercase; color:#cc0000; margin-bottom:3px;
+}
+.about-txt { font-size:9px; color:#555; line-height:1.65; }
+
+/* ── FOOTER ── */
+.footer {
+  margin-top:auto;
+  padding:10px 26px 12px;
+  border-top:1.5px solid #e8e8e8;
+  display:flex; align-items:center; justify-content:space-between;
+  flex-shrink:0;
+}
+.footer-brand {
+  font-family:'Playfair Display',serif;
+  font-weight:900; font-size:14px; color:#111;
+}
+.footer-brand span { color:#cc0000; }
+.footer-tag {
+  font-family:'Rajdhani',sans-serif;
+  font-size:10px; font-weight:700; letter-spacing:2px; color:#1a7a3a;
+}
+.footer-copy { font-size:8.5px; color:#bbb; text-align:right; }
+
+.bottom-bar {
+  height:5px;
+  background:linear-gradient(90deg,#1a7a3a 50%,#cc0000 50%);
+  flex-shrink:0;
+}
+
+/* ── PRINT ── */
+@media print {
+  body { background:#fff!important; padding:0!important; }
+  .screen-only { display:none!important; }
+  .page { box-shadow:none!important; width:210mm; min-height:297mm; }
+  @page { size:A4 portrait; margin:0; }
+}
+</style>
+</head>
+<body>
+
+<div class="screen-only">
+  <button class="btn-top btn-print" onclick="window.print()">🖨️ Print</button>
+  <button class="btn-top btn-pdf" onclick="window.print()">📄 Save as PDF</button>
+</div>
+
+<div class="page">
+  <div class="top-bar"></div>
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="logo-wrap"><div class="logo-letter">V</div></div>
+    <div class="header-text">
+      <div class="header-title">VOD <span>Bangla</span></div>
+      <div class="header-sub">পথ দেখে... পথ দেখায়... &nbsp;|&nbsp; Social Media Directory</div>
+    </div>
+    <div class="header-qr-wrap">
+      <div id="qr-main"></div>
+      <div class="header-qr-lbl">Scan to Visit<br>vodbangla.pages.dev</div>
+    </div>
+  </div>
+
+  <!-- ── WEBSITE ── -->
+  <div class="sec">
+    <div class="sec-txt">Official Web Portals</div>
+    <div class="sec-line" style="background:linear-gradient(90deg,#1565c0,#e8e8e8)"></div>
+  </div>
+  <div class="rows">
+    <div class="row">
+      <div class="s-icon" style="background:linear-gradient(135deg,#1565c0,#0288d1)">🌐</div>
+      <div class="s-platform">Official Website</div>
+      <div class="s-handle">vodbangla.com</div>
+      <div class="s-url">https://www.vodbangla.com</div>
+      <div class="row-qr" id="qr-web"></div>
+    </div>
+    <div class="row">
+      <div class="s-icon" style="background:linear-gradient(135deg,#6a0dad,#9c27b0)">📡</div>
+      <div class="s-platform">Social Hub Page</div>
+      <div class="s-handle">vodbangla.pages.dev</div>
+      <div class="s-url">https://vodbangla.pages.dev</div>
+      <div class="row-qr" id="qr-hub"></div>
+    </div>
+  </div>
+
+  <!-- ── YOUTUBE ── -->
+  <div class="sec">
+    <div class="sec-txt">YouTube Network — 5 Channels</div>
+    <div class="sec-line" style="background:linear-gradient(90deg,#ff0000,#e8e8e8)"></div>
+  </div>
+  <div class="rows">
+    <div class="row">
+      <div class="s-icon" style="background:#cc0000">▶</div>
+      <div class="s-platform">VOD Bangla</div>
+      <div class="s-handle">@vodbangla</div>
+      <div class="s-url">https://www.youtube.com/@vodbangla</div>
+      <div class="row-qr" id="qr-yt1"></div>
+    </div>
+    <div class="row">
+      <div class="s-icon" style="background:#cc0000">▶</div>
+      <div class="s-platform">VOD News</div>
+      <div class="s-handle">@VODNewsbd</div>
+      <div class="s-url">https://www.youtube.com/@VODNewsbd</div>
+      <div class="row-qr" id="qr-yt2"></div>
+    </div>
+    <div class="row">
+      <div class="s-icon" style="background:#cc0000">▶</div>
+      <div class="s-platform">VOD World</div>
+      <div class="s-handle">@vodworld</div>
+      <div class="s-url">https://www.youtube.com/@vodworld</div>
+      <div class="row-qr" id="qr-yt3"></div>
+    </div>
+    <div class="row">
+      <div class="s-icon" style="background:#cc0000">▶</div>
+      <div class="s-platform">VOD Sports</div>
+      <div class="s-handle">@vodsports</div>
+      <div class="s-url">https://www.youtube.com/@vodsports</div>
+      <div class="row-qr" id="qr-yt4"></div>
+    </div>
+    <div class="row">
+      <div class="s-icon" style="background:#cc0000">▶</div>
+      <div class="s-platform">VOD Entertainment</div>
+      <div class="s-handle">@vodentermaintent</div>
+      <div class="s-url">https://www.youtube.com/@vodentermaintent</div>
+      <div class="row-qr" id="qr-yt5"></div>
+    </div>
+  </div>
+
+  <!-- ── FACEBOOK ── -->
+  <div class="sec">
+    <div class="sec-txt">Facebook Pages — 5 Pages</div>
+    <div class="sec-line" style="background:linear-gradient(90deg,#1877f2,#e8e8e8)"></div>
+  </div>
+  <div class="rows">
+    <div class="row">
+      <div class="s-icon" style="background:#1877f2; font-size:14px; font-weight:900">f</div>
+      <div class="s-platform">VOD Bangla</div>
+      <div class="s-handle">/vodbangla</div>
+      <div class="s-url">https://www.facebook.com/vodbangla</div>
+      <div class="row-qr" id="qr-fb1"></div>
+    </div>
+    <div class="row">
+      <div class="s-icon" style="background:#1877f2; font-size:14px; font-weight:900">f</div>
+      <div class="s-platform">VOD News</div>
+      <div class="s-handle">/vodnewsbd</div>
+      <div class="s-url">https://www.facebook.com/vodnewsbd</div>
+      <div class="row-qr" id="qr-fb2"></div>
+    </div>
+    <div class="row">
+      <div class="s-icon" style="background:#1877f2; font-size:14px; font-weight:900">f</div>
+      <div class="s-platform">VOD World</div>
+      <div class="s-handle">/vodworldbd</div>
+      <div class="s-url">https://www.facebook.com/vodworldbd</div>
+      <div class="row-qr" id="qr-fb3"></div>
+    </div>
+    <div class="row">
+      <div class="s-icon" style="background:#1877f2; font-size:14px; font-weight:900">f</div>
+      <div class="s-platform">VOD Sports</div>
+      <div class="s-handle">/vodsports</div>
+      <div class="s-url">https://www.facebook.com/vodsports</div>
+      <div class="row-qr" id="qr-fb4"></div>
+    </div>
+    <div class="row">
+      <div class="s-icon" style="background:#1877f2; font-size:14px; font-weight:900">f</div>
+      <div class="s-platform">VOD Entertainment</div>
+      <div class="s-handle">/vodentermaintent</div>
+      <div class="s-url">https://www.facebook.com/vodentermaintent</div>
+      <div class="row-qr" id="qr-fb5"></div>
+    </div>
+  </div>
+
+  <!-- ── OTHER SOCIAL ── -->
+  <div class="sec">
+    <div class="sec-txt">Social Media Platforms</div>
+    <div class="sec-line" style="background:linear-gradient(90deg,#444,#e8e8e8)"></div>
+  </div>
+  <div class="rows">
+    <div class="row">
+      <div class="s-icon" style="background:linear-gradient(135deg,#010101,#ff0050)">♪</div>
+      <div class="s-platform">TikTok</div>
+      <div class="s-handle">@vodbangla</div>
+      <div class="s-url">https://www.tiktok.com/@vodbangla</div>
+      <div class="row-qr" id="qr-tt"></div>
+    </div>
+    <div class="row">
+      <div class="s-icon" style="background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045)">📸</div>
+      <div class="s-platform">Instagram</div>
+      <div class="s-handle">@vodbanglabd</div>
+      <div class="s-url">https://www.instagram.com/vodbanglabd</div>
+      <div class="row-qr" id="qr-ig"></div>
+    </div>
+    <div class="row">
+      <div class="s-icon" style="background:#111; font-size:11px">𝕏</div>
+      <div class="s-platform">Twitter / X</div>
+      <div class="s-handle">@VODBangla</div>
+      <div class="s-url">https://x.com/VODBangla</div>
+      <div class="row-qr" id="qr-tw"></div>
+    </div>
+    <div class="row">
+      <div class="s-icon" style="background:#0088cc">✈</div>
+      <div class="s-platform">Telegram</div>
+      <div class="s-handle">@vodbanglabd</div>
+      <div class="s-url">https://t.me/vodbanglabd</div>
+      <div class="row-qr" id="qr-tg"></div>
+    </div>
+    <div class="row">
+      <div class="s-icon" style="background:#111; font-size:11px">🧵</div>
+      <div class="s-platform">Threads</div>
+      <div class="s-handle">@vodbanglabd</div>
+      <div class="s-url">https://www.threads.net/@vodbanglabd</div>
+      <div class="row-qr" id="qr-th"></div>
+    </div>
+    <div class="row">
+      <div class="s-icon" style="background:#0077b5; font-size:11px; font-weight:800">in</div>
+      <div class="s-platform">LinkedIn</div>
+      <div class="s-handle">VOD Bangla Company</div>
+      <div class="s-url">https://www.linkedin.com/company/vodbangla</div>
+      <div class="row-qr" id="qr-li"></div>
+    </div>
+    <div class="row">
+      <div class="s-icon" style="background:#25d366">💬</div>
+      <div class="s-platform">WhatsApp Channel</div>
+      <div class="s-handle">VOD Bangla Official</div>
+      <div class="s-url">https://whatsapp.com/channel/0029VaauVEhAe5VyVK0vtc1s</div>
+      <div class="row-qr" id="qr-wa"></div>
+    </div>
+  </div>
+
+  <!-- ── CONTACT ── -->
+  <div class="sec">
+    <div class="sec-txt">Contact &amp; Address</div>
+    <div class="sec-line" style="background:linear-gradient(90deg,#1a7a3a,#e8e8e8)"></div>
+  </div>
+  <div class="contact-grid">
+    <div class="c-item">
+      <div class="c-icon" style="background:#fff0f0">📍</div>
+      <div>
+        <div class="c-lbl">Address</div>
+        <div class="c-val">Planners Tower, 10th Floor, Suite 6 &amp; 7<br>13/A Bir Uttam CR Datta Road, Sonargaon Road, Dhaka 1000</div>
+      </div>
+    </div>
+    <div class="c-item">
+      <div class="c-icon" style="background:#f0fff4">📞</div>
+      <div>
+        <div class="c-lbl">Phone</div>
+        <div class="c-val">01786-091965</div>
+      </div>
+    </div>
+    <div class="c-item">
+      <div class="c-icon" style="background:#f0f4ff">✉️</div>
+      <div>
+        <div class="c-lbl">Email</div>
+        <div class="c-val">info@vodbangla.com</div>
+      </div>
+    </div>
+    <div class="c-item">
+      <div class="c-icon" style="background:#fff8f0">🗺️</div>
+      <div>
+        <div class="c-lbl">Google Maps</div>
+        <div class="c-val">share.google/CdIIPZUX2L1oHFY8G</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ABOUT -->
+  <div class="about-box">
+    <div class="about-lbl">About VOD Bangla</div>
+    <div class="about-txt">VOD Bangla offers regularly updated articles on its news website. The broadcaster's stated goals are to produce reliable news coverage, provide access to the Bangla language, and promote understanding between peoples. It is also a provider of live streaming world news which can be viewed via its website, YouTube, and various mobile devices and digital media players. VOD Bangla has been broadcasting since 2024.</div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <div class="footer-brand">VOD <span>Bangla</span></div>
+    <div class="footer-tag">পথ দেখে... পথ দেখায়...</div>
+    <div class="footer-copy">© 2024–2026 VOD Bangla<br>All Rights Reserved</div>
+  </div>
+  <div class="bottom-bar"></div>
+</div>
+
+<script>
+function makeQR(id, url, size) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  new QRCode(el, {
+    text: url,
+    width: size,
+    height: size,
+    colorDark: '#111111',
+    colorLight: '#ffffff',
+    correctLevel: QRCode.CorrectLevel.M
+  });
+}
+
+window.addEventListener('load', function() {
+  // Header large QR for hub page
+  makeQR('qr-main', 'https://vodbangla.pages.dev', 70);
+
+  // Web portals
+  makeQR('qr-web',  'https://www.vodbangla.com', 34);
+  makeQR('qr-hub',  'https://vodbangla.pages.dev', 34);
+
+  // YouTube
+  makeQR('qr-yt1', 'https://www.youtube.com/@vodbangla', 34);
+  makeQR('qr-yt2', 'https://www.youtube.com/@VODNewsbd', 34);
+  makeQR('qr-yt3', 'https://www.youtube.com/@vodworld', 34);
+  makeQR('qr-yt4', 'https://www.youtube.com/@vodsports', 34);
+  makeQR('qr-yt5', 'https://www.youtube.com/@vodentermaintent', 34);
+
+  // Facebook
+  makeQR('qr-fb1', 'https://www.facebook.com/vodbangla', 34);
+  makeQR('qr-fb2', 'https://www.facebook.com/vodnewsbd', 34);
+  makeQR('qr-fb3', 'https://www.facebook.com/vodworldbd', 34);
+  makeQR('qr-fb4', 'https://www.facebook.com/vodsports', 34);
+  makeQR('qr-fb5', 'https://www.facebook.com/vodentermaintent', 34);
+
+  // Other social
+  makeQR('qr-tt', 'https://www.tiktok.com/@vodbangla', 34);
+  makeQR('qr-ig', 'https://www.instagram.com/vodbanglabd', 34);
+  makeQR('qr-tw', 'https://x.com/VODBangla', 34);
+  makeQR('qr-tg', 'https://t.me/vodbanglabd', 34);
+  makeQR('qr-th', 'https://www.threads.net/@vodbanglabd', 34);
+  makeQR('qr-li', 'https://www.linkedin.com/company/vodbangla', 34);
+  makeQR('qr-wa', 'https://whatsapp.com/channel/0029VaauVEhAe5VyVK0vtc1s', 34);
+});
+</script>
+</body>
+</html>
